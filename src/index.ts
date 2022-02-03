@@ -218,7 +218,7 @@ export const checkPermits = async <T>(...permits: [permit: Permit<T>, privilege:
 }
 
 /**
- * Perform the given permit checks.
+ * Perform the given permission checks.
  *
  * @param permissions the checks to be performed.
  * @return an approval object.
@@ -232,6 +232,54 @@ export const checkPermissions = async <T>(...permissions: [permission: Permissio
     }
 
     return {value: true}
+}
+
+// Is
+
+/**
+ * Check the given permit.
+ *
+ * @param permit the permit to be checked.
+ * @param privilege the privilege.
+ * @param target the target to check the permit for.
+ * @return true, if the privilege is permitted the given permit for the given target.
+ */
+export const isPermitted = async <T>(permit: Permit<T>, privilege: Privilege, target?: T): Promise<boolean> => {
+    return await checkPermit(permit, privilege, target).then(it => it.value)
+}
+
+/**
+ * Check the given permission.
+ *
+ * @param permit the permission to be checked.
+ * @param privilege the privilege.
+ * @param target the target to check the permit for.
+ * @return true, if the privilege is permissioned the given permission for the given target.
+ */
+export const isPermissioned = async <T>(permission: Permission<T>, privilege: Privilege, target?: T): Promise<boolean> => {
+    return await checkPermission(permission, privilege, target).then(it => it.value)
+}
+
+// Bulk Is
+
+/**
+ * Perform the given permit checks.
+ *
+ * @param permits the checks to be performed.
+ * @return true, if all the permits are checked.
+ */
+export const arePermitted = async <T>(...permits: [permit: Permit<T>, privilege: Privilege, target?: T][]): Promise<boolean> => {
+    return await checkPermits(...permits).then(it => it.value)
+}
+
+/**
+ * Perform the given permission checks.
+ *
+ * @param permissions the checks to be performed.
+ * @return true, if all the permissions are checked.
+ */
+export const arePermissioned = async <T>(...permissions: [permission: Permission<T>, privilege: Privilege, target?: T][]): Promise<boolean> => {
+    return await checkPermissions(...permissions).then(it => it.value)
 }
 
 // Require
