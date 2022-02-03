@@ -1,6 +1,6 @@
 {
-  "name": "simple-perm",
-  "version": "1.0.9",
+  "name": "permanager",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "author": {
     "name": "LSafer",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/progspacesa/simple-perm"
+    "url": "https://github.com/progspacesa/permanager"
   },
   "main": "build/index.js",
   "types": "build/index.d.ts",
