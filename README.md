@@ -1,2 +1,2 @@
-# simple-perm
+# Permanager
  Simple permissions library for node
