@@ -8,7 +8,7 @@ export class Denial extends Error {
     value?: string | boolean
 
     constructor(cause: string, value?: any) {
-        super(value === undefined ? `Denial: ${cause}: ${value}` : `Denial: ${cause}`);
+        super(value !== undefined ? `Denial: ${cause}: ${value}` : `Denial: ${cause}`);
         this.cause = cause
         this.value = value
     }
