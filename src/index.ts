@@ -7,7 +7,7 @@ export class Denial extends Error {
     cause: string
     value?: string | boolean
 
-    constructor(cause: string, value?: string | boolean) {
+    constructor(cause: string, value?: any) {
         super(value === undefined ? `Denial: ${cause}: ${value}` : `Denial: ${cause}`);
         this.cause = cause
         this.value = value
@@ -247,7 +247,17 @@ export const requirePermit = async <T>(permit: Permit<T>, privilege: Privilege, 
     const approval = await checkPermit(permit, privilege, target)
 
     if (!approval.value)
-        throw approval.error
+        switch (typeof approval.error) {
+            case 'string':
+            case 'boolean':
+            case 'undefined':
+            case 'bigint':
+            case 'number':
+            case 'undefined':
+                throw new Denial('Permit', approval.error)
+            default:
+                throw approval.error
+        }
 }
 
 /**
@@ -261,7 +271,17 @@ export const requirePermission = async <T>(permission: Permission<T>, privilege:
     const approval = await checkPermission(permission, privilege, target)
 
     if (!approval.value)
-        throw approval.error
+        switch (typeof approval.error) {
+            case 'string':
+            case 'boolean':
+            case 'undefined':
+            case 'bigint':
+            case 'number':
+            case 'undefined':
+                throw new Denial('Permit', approval.error)
+            default:
+                throw approval.error
+        }
 }
 
 // Bulk Require
