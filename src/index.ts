@@ -291,7 +291,7 @@ export const arePermissioned = async <T>(...permissions: [permission: Permission
  * @param privilege the privilege.
  * @param target the target to check the permit for.
  */
-export const requirePermit = async <T>(permit: Permit<T>, privilege: Privilege, target?: T) => {
+export const requirePermit = async <T>(permit: Permit<T>, privilege: Privilege, target?: T): Promise<T> => {
     const approval = await checkPermit(permit, privilege, target)
 
     if (!approval.value)
@@ -306,6 +306,8 @@ export const requirePermit = async <T>(permit: Permit<T>, privilege: Privilege, 
             default:
                 throw approval.error
         }
+
+    return target!
 }
 
 /**
@@ -315,7 +317,7 @@ export const requirePermit = async <T>(permit: Permit<T>, privilege: Privilege, 
  * @param privilege the privilege.
  * @param target the target to check the permission for.
  */
-export const requirePermission = async <T>(permission: Permission<T>, privilege: Privilege, target?: T) => {
+export const requirePermission = async <T>(permission: Permission<T>, privilege: Privilege, target?: T): Promise<T> => {
     const approval = await checkPermission(permission, privilege, target)
 
     if (!approval.value)
@@ -326,10 +328,12 @@ export const requirePermission = async <T>(permission: Permission<T>, privilege:
             case 'bigint':
             case 'number':
             case 'undefined':
-                throw new Denial('Permit', approval.error)
+                throw new Denial('Permission', approval.error)
             default:
                 throw approval.error
         }
+
+    return target!
 }
 
 // Bulk Require
@@ -339,11 +343,13 @@ export const requirePermission = async <T>(permission: Permission<T>, privilege:
  *
  * @param permits the checks to be performed.
  */
-export const requirePermits = async <T>(...permits: [permit: Permit<T>, privilege: Privilege, target?: T][]) => {
+export const requirePermits = async <T>(...permits: [permit: Permit<T>, privilege: Privilege, target?: T][]): Promise<T[]> => {
     const approval = await checkPermits(...permits)
 
     if (!approval.value)
         throw approval.error
+
+    return permits.map(it => it[2]!)
 }
 
 /**
@@ -351,11 +357,13 @@ export const requirePermits = async <T>(...permits: [permit: Permit<T>, privileg
  *
  * @param permissions the checks to be performed.
  */
-export const requirePermissions = async <T>(...permissions: [permission: Permission<T>, privilege: Privilege, target?: T][]) => {
+export const requirePermissions = async <T>(...permissions: [permission: Permission<T>, privilege: Privilege, target?: T][]): Promise<T[]> => {
     const approval = await checkPermissions(...permissions)
 
     if (!approval.value)
         throw approval.error
+
+    return permissions.map(it => it[2]!)
 }
 
 // Evaluations
