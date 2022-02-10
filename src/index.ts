@@ -40,7 +40,20 @@ export type Role = {
     /**
      * The error to be thrown when the role is not met.
      */
-    error: any
+    error?: any,
+    /**
+     * A continuation of this role if the privilege supports it.
+     */
+    continue?: {
+        /**
+         * The type of the continuation.
+         */
+        type: string,
+        /**
+         * The permission to continue.
+         */
+        permission: Permission<any>
+    }
 }
 
 // Privilege
