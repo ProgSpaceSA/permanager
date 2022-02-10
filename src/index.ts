@@ -32,29 +32,9 @@ export type Approval = {
 /**
  * A type representing a permit role that can be tested.
  */
-export type Role = {
-    /**
-     * The role string.
-     */
-    value: string,
-    /**
-     * The error to be thrown when the role is not met.
-     */
-    error?: any,
-    /**
-     * A continuation of this role if the privilege supports it.
-     */
-    continue?: {
-        /**
-         * The type of the continuation.
-         */
-        type: string,
-        /**
-         * The permission to continue.
-         */
-        permission: Permission<any>
-    }
-}
+export type Role =
+    { value: string, error?: any, continue?: undefined } |
+    { value?: undefined, error?: undefined, continue: { type: string, permission: Permission<any> } }
 
 // Privilege
 
