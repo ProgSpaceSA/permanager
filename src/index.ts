@@ -122,34 +122,40 @@ export type Permission<T> = PermissionPromise<T> | PermissionFunction<T>
  PermissionFunction                                  : Permission
 */
 
-// Constructors
+// Utils
 
 /**
- * Create the role values of the given permit.
- *
- * @param permit the permit to get the role values from.
- * @param target the target to create the role values for.
- * @return a set containing the role values granting the given permit for the given target.
+ * Permission utilities.
  */
-export const createRoleSet = async <T>(permit: Permit<T>, target: T): Promise<string[]> => {
-    return evaluatePermit(permit, target)
-        .then(it => it.map(it => it.value))
-        .then(it => [...new Set(it)])
+export namespace Permission {
+    /**
+     * Create a permission that returns the result of checking the given permit.
+     */
+    export const create = <T>(permit: Permit<T>): Permission<T> => {
+        return (privilege, target) => checkPermit(permit, privilege, target)
+    }
+
+    /**
+     * Create a new permission that returns the result of invoking the given
+     * permission with the target being the result of invoking the given mapper
+     * with the target given to it.
+     */
+    export const map = <T, U>(permission: Permission<T>, mapper: { (target: U): T | Promise<T> }): Permission<U> => {
+        return async (privilege, target) => evaluatePermission(permission, privilege, await mapper(target))
+    }
 }
 
-// Bulk Constructors
-
 /**
- * Create the role values of the given permits.
- *
- * @param permits the permits to serialize the role values from.
- * @return the role values granting the given permit for the given target.
+ * Permit utilities.
  */
-export const createRoleSets = async <T>(...permits: [permit: Permit<T>, target: T][]): Promise<string[]> => {
-    return Promise
-        .all(permits.map(([p, t]) => createRoleSet(p, t)))
-        .then(it => it.flatMap(it => it))
-        .then(it => [...new Set(it)])
+export namespace Permit {
+    /**
+     * Create a permit that returns the result of invoking the given permit with
+     * the target being the result of invoking the given mapper with the target given to it.
+     */
+    export const map = <T, U>(permit: Permit<T>, mapper: { (target: U): T | Promise<T> }): Permit<U> => {
+        return async (target) => evaluatePermit(permit, await mapper(target))
+    }
 }
 
 // Validators
@@ -198,42 +204,6 @@ export const checkPermission = async <T>(permission: Permission<T>, privilege: P
     return {value: true}
 }
 
-// Bulk Validators
-
-/**
- * Perform the given permit checks.
- *
- * @param permits the checks to be performed.
- * @return an approval object.
- */
-export const checkPermits = async <T>(...permits: [permit: Permit<T>, privilege: Privilege, target?: T][]): Promise<Approval> => {
-    for (const [permit, privilege, target] of permits) {
-        const approval = await checkPermit(permit, privilege, target)
-
-        if (!approval.value)
-            return approval
-    }
-
-    return {value: true}
-}
-
-/**
- * Perform the given permission checks.
- *
- * @param permissions the checks to be performed.
- * @return an approval object.
- */
-export const checkPermissions = async <T>(...permissions: [permission: Permission<T>, privilege: Privilege, target?: T][]): Promise<Approval> => {
-    for (const [permission, privilege, target] of permissions) {
-        const approval = await checkPermission(permission, privilege, target)
-
-        if (!approval.value)
-            return approval
-    }
-
-    return {value: true}
-}
-
 // Is
 
 /**
@@ -258,28 +228,6 @@ export const isPermitted = async <T>(permit: Permit<T>, privilege: Privilege, ta
  */
 export const isPermissioned = async <T>(permission: Permission<T>, privilege: Privilege, target?: T): Promise<boolean> => {
     return await checkPermission(permission, privilege, target).then(it => it.value)
-}
-
-// Bulk Is
-
-/**
- * Perform the given permit checks.
- *
- * @param permits the checks to be performed.
- * @return true, if all the permits are checked.
- */
-export const arePermitted = async <T>(...permits: [permit: Permit<T>, privilege: Privilege, target?: T][]): Promise<boolean> => {
-    return await checkPermits(...permits).then(it => it.value)
-}
-
-/**
- * Perform the given permission checks.
- *
- * @param permissions the checks to be performed.
- * @return true, if all the permissions are checked.
- */
-export const arePermissioned = async <T>(...permissions: [permission: Permission<T>, privilege: Privilege, target?: T][]): Promise<boolean> => {
-    return await checkPermissions(...permissions).then(it => it.value)
 }
 
 // Require
@@ -334,36 +282,6 @@ export const requirePermission = async <T>(permission: Permission<T>, privilege:
         }
 
     return target!
-}
-
-// Bulk Require
-
-/**
- * Check the given permit checks and throw the error if any fails.
- *
- * @param permits the checks to be performed.
- */
-export const requirePermits = async <T>(...permits: [permit: Permit<T>, privilege: Privilege, target?: T][]): Promise<T[]> => {
-    const approval = await checkPermits(...permits)
-
-    if (!approval.value)
-        throw approval.error
-
-    return permits.map(it => it[2]!)
-}
-
-/**
- * Check the given permission checks and throw the error if any fails.
- *
- * @param permissions the checks to be performed.
- */
-export const requirePermissions = async <T>(...permissions: [permission: Permission<T>, privilege: Privilege, target?: T][]): Promise<T[]> => {
-    const approval = await checkPermissions(...permissions)
-
-    if (!approval.value)
-        throw approval.error
-
-    return permissions.map(it => it[2]!)
 }
 
 // Evaluations
