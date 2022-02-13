@@ -29,12 +29,42 @@ export type Approval = {
      */
     error?: any
 }
+
 /**
- * A type representing a permit role that can be tested.
+ * An object containing a permission to be checked in another context.
  */
-export type Role =
-    { value: string, error?: any, continue?: undefined } |
-    { value?: undefined, error?: undefined, continue: { type: string, permission: Permission<any> } }
+export type Continuation<T> = {
+    /**
+     * The type of the continuation.
+     * Used to assert the type of the permission's parameter.
+     */
+    type: string,
+    /**
+     * The permission to continue the role with.
+     */
+    permission: Permission<T>
+}
+
+/**
+ * A type representing a permission signature that can be verified.
+ */
+export type Role = {
+    /**
+     * The value of this role.
+     * A string if the role can be verified directly.
+     * Or a continuation to be verified on a specific context.
+     * If the reciever of this role does not support the type
+     * of the continuation, it is totally free to throw whatever
+     * exception it want. Since it is the resposibility of the
+     * continuation creator to make sure the continuation is
+     * supported by the role verifier (aka, the privilege object).
+     */
+    value: string | Continuation<any>
+    /**
+     * The error to report when this role is not verified.
+     */
+    error?: any
+}
 
 // Privilege
 
