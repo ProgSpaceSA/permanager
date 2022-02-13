@@ -166,6 +166,13 @@ export namespace Permission {
     export const map = <T, U>(permission: Permission<T>, mapper: { (target: U): T | Promise<T> }): Permission<U> => {
         return async (privilege, target) => evaluatePermission(permission, privilege, await mapper(target))
     }
+
+    /**
+     * Create a new permission that always validates a continuation role that has the given type, permission and error.
+     */
+    export const continuation = <T>(type: string, permission: Permission<T>, error?: any): Permission<any> => {
+        return (privilege, target) => checkPermit({value: {type, permission}, error}, privilege, target)
+    }
 }
 
 /**
@@ -178,6 +185,21 @@ export namespace Permit {
      */
     export const map = <T, U>(permit: Permit<T>, mapper: { (target: U): T | Promise<T> }): Permit<U> => {
         return async (target) => evaluatePermit(permit, await mapper(target))
+    }
+}
+
+/**
+ * Role utilities.
+ */
+export namespace Role {
+    /**
+     * Create a new continuation role with the given parameters.
+     */
+    export const continuation = <T>(type: string, permission: Permission<T>, error?: any): Role => {
+        return {
+            value: {type, permission},
+            error
+        }
     }
 }
 
