@@ -1,7 +1,7 @@
 // Classes
 
 /**
- * The type of an error thrown by this library because of a failed approval.
+ * The type of error thrown by this library because of a failed approval.
  */
 export class Denial extends Error {
     cause: string
@@ -53,9 +53,9 @@ export type Role = {
      * The value of this role.
      * A string if the role can be verified directly.
      * Or a continuation to be verified on a specific context.
-     * If the reciever of this role does not support the type
+     * If the receiver of this role does not support the type
      * of the continuation, it is totally free to throw whatever
-     * exception it want. Since it is the resposibility of the
+     * exception it wants. Since it is the responsibility of the
      * continuation creator to make sure the continuation is
      * supported by the role verifier (aka, the privilege object).
      */
@@ -152,6 +152,49 @@ export type Permission<T> = PermissionPromise<T> | PermissionFunction<T>
  */
 export namespace Permission {
     /**
+     * Return a permission that returns a single approval.
+     * If the permission evaluated to at least one failed approval,
+     * that approval will be returned.
+     * If the permission evaluated no failed approval and at least one approval,
+     * a generic success approval will be returned.
+     * If the permission evaluated no approvals,
+     * a generic failed approval will be returned.
+     */
+    export const reduceDenial = <T>(permission: Permission<T>): Permission<T> => {
+        return async (privilege, target) => {
+            const approvals = await evaluatePermission(permission, privilege, target)
+
+            if (approvals.length === 0)
+                return {value: false, error: new Denial('Approval')}
+
+            for (const approval of approvals)
+                if (!approval.value)
+                    return approval
+
+            return {value: true}
+        }
+    }
+
+    /**
+     * Return a permission that returns a single approval.
+     * If the permission evaluated at least one success approval,
+     * that approval will be returned.
+     * If the permission evaluated no success approval,
+     * a generic failed approval will be returned.
+     */
+    export const reduceApproval = <T>(permission: Permission<T>): Permission<T> => {
+        return async (privilege, target) => {
+            const approvals = await evaluatePermission(permission, privilege, target)
+
+            for (const approval of approvals)
+                if (approval.value)
+                    return approval
+
+            return {value: false, error: new Denial('Approval')}
+        }
+    }
+
+    /**
      * Create a permission that returns the result of checking the given permit.
      */
     export const create = <T>(permit: Permit<T>): Permission<T> => {
@@ -192,6 +235,13 @@ export namespace Permit {
  * Role utilities.
  */
 export namespace Role {
+    /**
+     * Return `true` if the given role's value is not a continuation.
+     */
+    export const isContinuation = (role: Role): boolean => {
+        return typeof role.value !== 'string'
+    }
+
     /**
      * Create a new continuation role with the given parameters.
      */
@@ -266,7 +316,7 @@ export const isPermitted = async <T>(permit: Permit<T>, privilege: Privilege, ta
 /**
  * Check the given permission.
  *
- * @param permit the permission to be checked.
+ * @param permission the permission to be checked.
  * @param privilege the privilege.
  * @param target the target to check the permit for.
  * @return true, if the privilege is permissioned the given permission for the given target.
@@ -291,7 +341,6 @@ export const requirePermit = async <T>(permit: Permit<T>, privilege: Privilege, 
         switch (typeof approval.error) {
             case 'string':
             case 'boolean':
-            case 'undefined':
             case 'bigint':
             case 'number':
             case 'undefined':
@@ -317,7 +366,6 @@ export const requirePermission = async <T>(permission: Permission<T>, privilege:
         switch (typeof approval.error) {
             case 'string':
             case 'boolean':
-            case 'undefined':
             case 'bigint':
             case 'number':
             case 'undefined':
