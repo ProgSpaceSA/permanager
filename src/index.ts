@@ -154,9 +154,9 @@ export namespace Permission {
     /**
      * Return a permission that returns a single approval.
      * If the permission evaluated to at least one failed approval,
-     * that approval will be returned.
+     * the first failed approval will be returned.
      * If the permission evaluated no failed approval and at least one approval,
-     * a generic success approval will be returned.
+     * the first approval will be returned.
      * If the permission evaluated no approvals,
      * a generic failed approval will be returned.
      */
@@ -171,26 +171,31 @@ export namespace Permission {
                 if (!approval.value)
                     return approval
 
-            return {value: true}
+            return approvals[0]
         }
     }
 
     /**
      * Return a permission that returns a single approval.
      * If the permission evaluated at least one success approval,
-     * that approval will be returned.
-     * If the permission evaluated no success approval,
+     * the first success approval will be returned.
+     * If the permission evaluated no success approval and at least one approval,
+     * the first approval will be returned.
+     * If the permission evaluated no approvals,
      * a generic failed approval will be returned.
      */
     export const reduceApproval = <T>(permission: Permission<T>): Permission<T> => {
         return async (privilege, target) => {
             const approvals = await evaluatePermission(permission, privilege, target)
 
+            if (approvals.length === 0)
+                return {value: false, error: new Denial('Approval')}
+
             for (const approval of approvals)
                 if (approval.value)
                     return approval
 
-            return {value: false, error: new Denial('Approval')}
+            return approvals[0]
         }
     }
 
