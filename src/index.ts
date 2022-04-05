@@ -484,3 +484,17 @@ export const evaluatePermit = async <T>(permit: Permit<T>, target?: T): Promise<
 
     throw new Error('Invalid Permit Type')
 }
+
+/**
+ * Evaluate the given role/roles into string array.
+ */
+export const evaluateRole = (role: Role | Role[]): string[] => {
+    if (Array.isArray(role))
+        return role.map(evaluateRole)
+            .flatMap(it => it)
+
+    if (typeof role.value == "object")
+        throw "Continuation roles cannot be evaluated"
+
+    return [role.value]
+}
