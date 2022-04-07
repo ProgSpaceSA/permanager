@@ -46,25 +46,43 @@ export type Continuation<T> = {
 }
 
 /**
- * A type representing a permission signature that can be verified.
+ * A role that must be further evaluated.
  */
-export type Role = {
+export type ContinuationRole = {
     /**
      * The value of this role.
-     * A string if the role can be verified directly.
-     * Or a continuation to be verified on a specific context.
+     * A continuation to be verified on a specific context.
      * If the receiver of this role does not support the type
      * of the continuation, it is totally free to throw whatever
      * exception it wants. Since it is the responsibility of the
      * continuation creator to make sure the continuation is
      * supported by the role verifier (aka, the privilege object).
      */
-    value: string | Continuation<any>
+    value: Continuation<any>
     /**
      * The error to report when this role is not verified.
      */
     error?: any
 }
+
+/**
+ * A role that can be verified directly.
+ */
+export type StringRole = {
+    /**
+     * The value of this role.
+     */
+    value: string
+    /**
+     * The error to report when this role is not verified.
+     */
+    error?: any
+}
+
+/**
+ * A type representing a permission signature that can be verified.
+ */
+export type Role = StringRole | ContinuationRole
 
 // Privilege
 
