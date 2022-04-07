@@ -259,9 +259,9 @@ export namespace Permit {
  */
 export namespace Role {
     /**
-     * Return `true` if the given role's value is not a continuation.
+     * Return `true` if the given role's value is a continuation.
      */
-    export const isContinuation = (role: Role): boolean => {
+    export const isContinuation = (role: Role): role is ContinuationRole => {
         return typeof role.value !== 'string'
     }
 
